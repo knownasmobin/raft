@@ -1,40 +1,69 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
-	"log"
+	"log"	
 	"os"
 	"time"
 )
 
-//Define the number of nodes
-var raftCount = 3
+type Data struct {
+	Nodes            map[string]string `json:"nodes"`
+	Timeout          int               `json:"Timeout"`
+	HeartBeatTimeout int               `json:"heartBeatTimeout"`
+	HeartBeatTimes   int               `json:"heartBeatTimes"`
+	HttpPort		 string            `json:"httpPort"`
+}
 
-//Node pool
+// Define the number of nodes
+var raftCount int
+
+// Node pool
 var nodeTable map[string]string
 
-//Election timeout time (unit: second)
-var timeout = 3
+// Election timeout time (unit: second)
+var timeout int
 
-//Heartbeat detection timeout time
-var heartBeatTimeout = 7
+// Heartbeat detection timeout time
+var heartBeatTimeout int
 
-//Heartbeat detection frequency (unit: second)
-var heartBeatTimes = 3
+// Heartbeat detection frequency (unit: second)
+var heartBeatTimes int
 
-//Used to store messages
+// Used to store messages
 var MessageStore = make(map[int]string)
 
+// HTTP port to listen
+var httpPort string
 func main() {
-	//Define three nodes node numbers -monitoring port number
-	nodeTable = map[string]string{
-		"A": ":9000",
-		"B": ":9001",
-		"C": ":9002",
+	//Read Nodes id and port number from json file
+
+	data, err := os.ReadFile("./config.json")
+	if err != nil {
+		log.Fatal("Error when reading config.json: ", err)
+	}
+	var config Data
+	err = json.Unmarshal(data, &config)
+	if err != nil {
+		log.Fatalf("Failed to unmarshal JSON: %v", err)
+	}
+	raftCount = len(config.Nodes)
+	timeout = config.Timeout
+	heartBeatTimeout = config.HeartBeatTimeout
+	heartBeatTimes = config.HeartBeatTimes
+	httpPort = config.HttpPort
+	// Populate the nodeTable map
+	nodeTable = config.Nodes
+
+	fmt.Println("The number of nodes is:", raftCount)
+	//Check if the number of nodes is odd
+	if (raftCount % 2) != 1 {
+		log.Fatalf("The number of nodes must be odd %d", raftCount) //Fatal is equivalent to Print() followed by a call to os.Exit(1).
 	}
 	//Specify the node number when running the program
 	if len(os.Args) < 1 {
-		log.Fatal("程序参数不正确")
+		log.Fatal("The program parameters are incorrect ")
 	}
 
 	id := os.Args[1]

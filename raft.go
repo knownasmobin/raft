@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-//Declaration Raft node type
+// Declaration Raft node type
 type Raft struct {
 	node *NodeInfo
 	//Number of voting obtained by this node
@@ -77,7 +77,7 @@ func NewRaft(id, port string) *Raft {
 	return rf
 }
 
-//Modify nodes as candidate status
+// Modify nodes as candidate status
 func (rf *Raft) becomeCandidate() bool {
 	r := randRange(1500, 5000)
 	//After the dormant random time, start becoming a candidate
@@ -95,7 +95,7 @@ func (rf *Raft) becomeCandidate() bool {
 		//Vote for yourself
 		rf.voteAdd()
 		fmt.Println("This node has been changed to candidate status")
-		fmt.Printf("Current number of votes：%d\n", rf.vote)
+		fmt.Printf("Current number of votes %d\n", rf.vote)
 		//Enter the election channel
 		return true
 	} else {
@@ -103,7 +103,7 @@ func (rf *Raft) becomeCandidate() bool {
 	}
 }
 
-//Election
+// Election
 func (rf *Raft) election() bool {
 	fmt.Println("Start the leaders election and broadcast to other nodes")
 	go rf.broadcast("Raft.Vote", rf.node, func(ok bool) {
@@ -112,13 +112,13 @@ func (rf *Raft) election() bool {
 	for {
 		select {
 		case <-time.After(time.Second * time.Duration(timeout)):
-			fmt.Println("The leader's election timeout, the node is changed to the follower status\n")
+			fmt.Println("The leader's election timeout, the node is changed to the follower status")
 			rf.reDefault()
 			return false
 		case ok := <-rf.voteCh:
 			if ok {
 				rf.voteAdd()
-				fmt.Printf("Get voting from other nodes, the current number of votes：%d\n", rf.vote)
+				fmt.Printf("Get voting from other nodes, the current number of votes %d\n", rf.vote)
 			}
 			if rf.vote > raftCount/2 && rf.currentLeader == "-1" {
 				fmt.Println("Obtaining the number of votes that exceed one -half of the network node, this node has been elected to becomeleader")
@@ -138,7 +138,7 @@ func (rf *Raft) election() bool {
 	}
 }
 
-//Heartbeat detection method
+// Heartbeat detection method
 func (rf *Raft) heartbeat() {
 	//If YouReceive The Information On The Channel, You Will Perform A Fixed Frequency Heartbeat Detection To Other Nodes
 	if <-rf.heartBeat {
@@ -153,61 +153,61 @@ func (rf *Raft) heartbeat() {
 	}
 }
 
-//Random value
+// Random value
 func randRange(min, max int64) int64 {
 	//Time for heartbeat signal
 	rand.New(rand.NewSource(time.Now().UnixNano()))
 	return rand.Int63n(max-min) + min
 }
 
-//Get the number of mills of time in the current time
+// Get the number of mills of time in the current time
 func millisecond() int64 {
 	return time.Now().UnixNano() / int64(time.Millisecond)
 }
 
-//Setting term
+// Setting term
 func (rf *Raft) setTerm(term int) {
 	rf.lock.Lock()
 	rf.currentTerm = term
 	rf.lock.Unlock()
 }
 
-//Who is set to vote
+// Who is set to vote
 func (rf *Raft) setVoteFor(id string) {
 	rf.lock.Lock()
 	rf.votedFor = id
 	rf.lock.Unlock()
 }
 
-//Set the current leader
+// Set the current leader
 func (rf *Raft) setCurrentLeader(leader string) {
 	rf.lock.Lock()
 	rf.currentLeader = leader
 	rf.lock.Unlock()
 }
 
-//Set the current leader
+// Set the current leader
 func (rf *Raft) setStatus(state int) {
 	rf.lock.Lock()
 	rf.state = state
 	rf.lock.Unlock()
 }
 
-//Voting accumulation
+// Voting accumulation
 func (rf *Raft) voteAdd() {
 	rf.lock.Lock()
 	rf.vote++
 	rf.lock.Unlock()
 }
 
-//Set the number of votes
+// Set the number of votes
 func (rf *Raft) setVote(num int) {
 	rf.lock.Lock()
 	rf.vote = num
 	rf.lock.Unlock()
 }
 
-//Restore the default settings
+// Restore the default settings
 func (rf *Raft) reDefault() {
 	rf.setVote(0)
 	//rfCurrentLeader = "1"
