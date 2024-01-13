@@ -3,7 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"log"	
+	"log"
 	"os"
 	"time"
 )
@@ -13,7 +13,7 @@ type Data struct {
 	Timeout          int               `json:"Timeout"`
 	HeartBeatTimeout int               `json:"heartBeatTimeout"`
 	HeartBeatTimes   int               `json:"heartBeatTimes"`
-	HttpPort		 string            `json:"httpPort"`
+	HttpPort         string            `json:"httpPort"`
 }
 
 // Define the number of nodes
@@ -36,6 +36,35 @@ var MessageStore = make(map[int]string)
 
 // HTTP port to listen
 var httpPort string
+
+func startElection(raft *Raft) {
+	for {
+		//Become a candidate node
+		if raft.becomeCandidate() {
+			//After becoming a post-elect node, ask for votes from other nodes to conduct elections
+			if raft.election() {
+				break
+			}
+		} else {
+			break
+		}
+	}
+}
+
+func checkHeartbeat(raft *Raft) bool {
+	//0.5 Detect once in a second
+	time.Sleep(time.Millisecond * 5000)
+	if raft.lastHeartBeartTime != 0 && (millisecond()-raft.lastHeartBeartTime) > int64(raft.timeout*1000) {
+		fmt.Printf("The heartbeat detection timed out and has exceeded %d seconds\n", raft.timeout)
+		fmt.Println("Elections are about to reopen")
+		raft.reDefault()
+		raft.setCurrentLeader("-1")
+		raft.lastHeartBeartTime = 0
+		return true
+	}
+	return false
+}
+
 func main() {
 	//Read Nodes id and port number from json file
 
@@ -74,39 +103,16 @@ func main() {
 	//Open heartbeat detection
 	go raft.heartbeat()
 	//Open a http monitoring
-	if id == "A" {
-		go raft.httpListen()
-	}
-
-Circle:
-	//Start an election
-	go func() {
-		for {
-			//Become a candidate node
-			if raft.becomeCandidate() {
-				//After becoming a post-elect node, ask for votes from other nodes to conduct elections
-				if raft.election() {
-					break
-				} else {
-					continue
-				}
-			} else {
-				break
-			}
-		}
-	}()
-
-	//Heartbeat is measured
+	//uncomment the following condition if you run it on a single machine
+	// if id == "A" {
+	// 	go raft.httpListen()
+	// }
+	go raft.httpListen() // comment this line if you run it on a single machine
+	
+	//Start the election
 	for {
-		//0.5 Detect once in a second
-		time.Sleep(time.Millisecond * 5000)
-		if raft.lastHeartBeartTime != 0 && (millisecond()-raft.lastHeartBeartTime) > int64(raft.timeout*1000) {
-			fmt.Printf("The heartbeat detection timed out and has exceeded %d seconds\n", raft.timeout)
-			fmt.Println("Elections are about to reopen")
-			raft.reDefault()
-			raft.setCurrentLeader("-1")
-			raft.lastHeartBeartTime = 0
-			goto Circle
+		go startElection(raft)
+		for !checkHeartbeat(raft) {
 		}
 	}
 }
