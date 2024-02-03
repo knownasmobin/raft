@@ -1,3 +1,8 @@
 /raft2
 /go.mod
+<<<<<<< Updated upstream
 config.json
+=======
+/dist
+/raft-macos-arm64
+>>>>>>> Stashed changes

@@ -73,9 +73,10 @@ func main() {
 	go rpcRegister(raft)
 	// Open heartbeat detection
 	go raft.heartbeat()
-	//Open a http monitoring
-	if id == "A" {
-		go raft.httpListen()
+	//Start HTTP service
+	go raft.httpListen()
+	if raft.node.ID == "A" {
+		
 	}
 
 Circle:

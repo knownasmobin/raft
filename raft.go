@@ -150,7 +150,9 @@ func (rf *Raft) heartbeat() {
 			rf.lastHeartBeartTime = millisecond()
 			time.Sleep(time.Second * time.Duration(heartBeatTimes))
 		}
+		
 	}
+	
 }
 
 // Random value
