@@ -1,0 +1,13 @@
+{
+    "nodes": {
+        "A": "9000",
+        "B": "9002",
+        "C": "9003",
+        "D": "9004",
+        "E": "9005"
+    },
+    "Timeout": 3,
+    "heartBeatTimeout": 3,
+    "heartBeatTimes": 3,
+    "HttpPort": "8080"
+}

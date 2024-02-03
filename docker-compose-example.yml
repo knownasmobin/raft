@@ -1,0 +1,28 @@
+version: '3'
+
+services:
+  node1:
+    build: ./
+    ports:
+      - "{RPC-PORT}:{RPC-PORT}"
+      - "{HTTP-PORT}:{HTTP-PORT}"
+    volumes:
+      - ./config.json:/app/config.json
+
+  node2:
+    build: ./
+    ports:
+      - "{RPC-PORT}:{RPC-PORT}"
+      - "{HTTP-PORT}:{HTTP-PORT}"
+    volumes:
+      - ./config.json:/app/config.json
+
+  #do this for how many nodes you want
+  # nodeN:
+  #   build: ./
+  #   ports:
+  #     - "{RPC-PORT}:{RPC-PORT}"
+  #     - "{HTTP-PORT}:{HTTP-PORT}"
+  #   volumes:
+  #     - ./config.json:/app/config.json
+  
