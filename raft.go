@@ -59,9 +59,9 @@ func NewRaft(id, port string) *Raft {
 	rf.setVote(0)
 	//serial number
 	rf.me = id
-	//VoteForThreeNodesOf012,NoOneWillVoteForAnyone
+	//Vote For Three Nodes Of ,No One Will Vote For Anyone
 	rf.setVoteFor("-1")
-	//0Follower
+	// 0 Follower
 	rf.setStatus(0)
 	//The last heartbeat detection time
 	rf.lastHeartBeartTime = 0

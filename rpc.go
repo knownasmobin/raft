@@ -122,7 +122,7 @@ func (rf *Raft) LeaderReceiveMessage(message Message, b *bool) error {
 	})
 
 	for {
-		//自己默认收到了消息，所以减去一
+		//I received the message by default, so subtract one
 		if num > raftCount/2-1 {
 			fmt.Printf("More than half of the nodes have received message ID:%d \n RAFT verification passed, and the message can be printed. The ID is: %d\n", message.MsgID, message.MsgID)
 			fmt.Println("News：", MessageStore[message.MsgID])
