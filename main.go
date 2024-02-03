@@ -36,7 +36,6 @@ var MessageStore = make(map[int]string)
 
 // HTTP port to listen
 var httpPort string
-
 func main() {
 	// Read Nodes id and port number from json file
 
@@ -74,56 +73,32 @@ func main() {
 	go rpcRegister(raft)
 	// Open heartbeat detection
 	go raft.heartbeat()
-	// Open an HTTP monitoring
+	//Open a http monitoring
 	if id == "A" {
 		go raft.httpListen()
 	}
 
-	go startElection(raft)
-
-	//Heartbeat is measured
-	for {
-		// 0.5 Detect once in a second
-		time.Sleep(time.Millisecond * 5000)
-		if raft.lastHeartBeartTime != 0 && (millisecond()-raft.lastHeartBeartTime) > int64(raft.timeout*1000) {
-			fmt.Printf("The heartbeat detection timed out and has exceeded %d seconds\n", raft.timeout)
-			fmt.Println("Elections are about to reopen")
-			raft.reDefault()
-			raft.setCurrentLeader("-1")
-			raft.lastHeartBeartTime = 0
-			go startElection(raft)
-		}
-	}
-}
-
-func startElection(raft *Raft) {
-	fmt.Println("Start the election")
-
-	// Define the election function
-	election := func() {
+Circle:
+	//Start an election
+	go func() {
 		for {
-			fmt.Println("Start the election timeout timer")
-			// Become a candidate node
+			//Become a candidate node
 			if raft.becomeCandidate() {
-				// After becoming a post-elect node, ask for votes from other nodes to conduct elections
-				fmt.Println("become Candidate")
+				//After becoming a post-elect node, ask for votes from other nodes to conduct elections
 				if raft.election() {
-					fmt.Println("Raft Election")
 					break
 				} else {
-					fmt.Println("break election")
 					continue
 				}
 			} else {
-				fmt.Println("becom")
 				break
 			}
 		}
-	}
+	}()
 
-	// Start the election timeout timer
+	//Heartbeat is measured
 	for {
-		// 0.5 Detect once in a second
+		//0.5 Detect once in a second
 		time.Sleep(time.Millisecond * 5000)
 		if raft.lastHeartBeartTime != 0 && (millisecond()-raft.lastHeartBeartTime) > int64(raft.timeout*1000) {
 			fmt.Printf("The heartbeat detection timed out and has exceeded %d seconds\n", raft.timeout)
@@ -131,7 +106,7 @@ func startElection(raft *Raft) {
 			raft.reDefault()
 			raft.setCurrentLeader("-1")
 			raft.lastHeartBeartTime = 0
-			go election()
+			goto Circle
 		}
 	}
 }
